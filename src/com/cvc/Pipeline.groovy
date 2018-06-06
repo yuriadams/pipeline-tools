@@ -1,3 +1,4 @@
+#!/usr/bin/groovy
 package com.cvc;
 
 def kubectlTest() {
