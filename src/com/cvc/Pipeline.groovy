@@ -87,3 +87,35 @@ def getMapValues(Map map=[:]) {
 
     return map_values
 }
+
+def generateFile(String sourceFile, String destFile, String from, String to) {
+  sh("sed 's/${from}/${to}/' ${sourceFile} > ${destFile}")
+}
+
+def createNamespace(kubectl, namespace) {
+  sh("${kubectl} create namespace ${namespace}")
+}
+
+def deploy(Map args) {
+  def namespace = ""
+
+  if (args.namespace == null) {
+    namespace = "default"
+  } else {
+    createNamespace(args.kubectl, args.namespace)
+    namespace = args.namespace
+  }
+
+  def kubectl = "${args.kubectl} --namespace ${namespace}}"
+  def deployment = sh(
+      script: "${kubectl} get deployment ${args.deployName}",
+      returnStatus: true
+  )
+
+  if (deployment != 0) {
+    shouldWait = true
+    sh("${kubectl} create -f ${args.deploymentFile}")
+  } else {
+    sh("${kubectl} set image deployment/${args.deployName} ${args.containerName}=${args.dockerImage}")
+  }
+}
