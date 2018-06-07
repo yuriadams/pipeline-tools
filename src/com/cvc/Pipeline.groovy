@@ -42,7 +42,7 @@ def notifyBuild(String message, String channel, String baseUrl, String tokenCred
               message: "${summary} ${message}")
 }
 
-def getContainerTags(config, Map tags = [:]) {
+def getContainerTags(git, Map tags = [:]) {
     println "getting list of tags for container"
     def String commit_tag
     def String version_tag
@@ -51,9 +51,9 @@ def getContainerTags(config, Map tags = [:]) {
     try {
         // if branch available, use as prefix, otherwise only commit hash
         if (env.BRANCH_NAME) {
-            commit_tag = env.BRANCH_NAME + '-' + env.GIT_COMMIT_ID.substring(0, 7)
+            commit_tag = env.BRANCH_NAME + '-' + git.GIT_COMMIT.substring(0, 8)
         } else {
-            commit_tag = env.GIT_COMMIT_ID.substring(0, 7)
+            commit_tag = git.GIT_COMMIT.substring(0, 8)
         }
         tags << ['commit': commit_tag]
     } catch (Exception e) {
@@ -69,5 +69,21 @@ def getContainerTags(config, Map tags = [:]) {
         }
     }
 
-    return tags
+    return getMapValues(tags)
+}
+
+@NonCPS
+def getMapValues(Map map=[:]) {
+    // jenkins and workflow restriction force this function instead of map.values(): https://issues.jenkins-ci.org/browse/JENKINS-27421
+    def entries = []
+    def map_values = []
+
+    entries.addAll(map.entrySet())
+
+    for (int i=0; i < entries.size(); i++){
+        String value =  entries.get(i).value
+        map_values.add(value)
+    }
+
+    return map_values
 }
