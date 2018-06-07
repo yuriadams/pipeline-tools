@@ -106,7 +106,7 @@ def deploy(Map args) {
     namespace = args.namespace
   }
 
-  def kubectl = "${args.kubectl} --namespace ${namespace}}"
+  def kubectl = "${args.kubectl} --namespace ${namespace}"
   def deployment = sh(
       script: "${kubectl} get deployment ${args.deployName}",
       returnStatus: true
