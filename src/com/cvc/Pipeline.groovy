@@ -92,14 +92,14 @@ def generateFile(String sourceFile, String destFile, String from, String to) {
   sh("sed 's/${from}/${to}/' ${sourceFile} > ${destFile}")
 }
 
-def createNamespace(kubectl, namespace) {
+def createNamespace(kubectl, namespaceName) {
   def namespace = sh(
-      script: "${kubectl} get namespace ${deployName}",
+      script: "${kubectl} get namespace ${namespaceName}",
       returnStatus: true
   )
 
   if (namespace != 0) {
-    sh("${kubectl} create namespace ${namespace}")
+    sh("${kubectl} create namespace ${namespaceName}")
   }
 }
 
