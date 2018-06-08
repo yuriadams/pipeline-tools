@@ -95,7 +95,7 @@ def generateFile(Map config, String sourcePath, String destPath, String dockerIm
 
   def binding = [
      $app_name       : config.app.name,
-     $app_replicas   : config.app.replicas,
+     $app_replicas   : config.app[env.JOB_BASE_NAME].replicas,
      $container_port : config.app.port,
      $docker_image   : dockerImage
   ]
@@ -125,7 +125,7 @@ def createNamespace(String kubectl, String namespaceName) {
   }
 }
 
-def deploy(Map args) {
+def deployK8S(Map args) {
   def namespace = ""
 
   if (args.namespace == null) {
@@ -148,6 +148,12 @@ def deploy(Map args) {
   }
 
   sh "${kubectl} apply -f ${args.serviceFile}"
+}
+
+def deployToS3AndCDN(Map args) {
+  sh "${args.aws} s3 sync ./build s3://${args.bucketName}"
+  sh "${args.aws} configure set preview.cloudfront true"
+  sh "${args.aws} cloudfront create-invalidation --distribution-id ${args.cloudfrontDistribution} --paths /index.html"
 }
 
 def cleanDeploy() {
