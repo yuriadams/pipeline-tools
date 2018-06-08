@@ -122,7 +122,6 @@ def deploy(Map args) {
   if (deployment != 0) {
     sh("${kubectl} create -f ${args.deploymentFile}")
   } else {
-    sh("${kubectl} create -f ${args.deploymentFile}")
     sh("${kubectl} set image deployment/${args.deployName} ${args.containerName}=${args.dockerImage}")
   }
 }
