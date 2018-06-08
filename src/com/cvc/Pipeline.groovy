@@ -143,3 +143,23 @@ def deploy(Map args) {
 
   sh "${kubectl} apply -f ${args.serviceFile}"
 }
+
+def cleanDeploy() {
+  def dockerImageId = sh(
+      script: "docker images | awk '{print \$3}' | sed '2!d'",
+      returnStdout: true
+  )
+
+  if (dockerImageId != "") {
+    sh("docker rmi -f ${dockerImageId}")
+  }
+}
+
+def requestToHealthCheck(Map args){
+  def httpResponse = sh(
+    script: "${args.ssh} curl -s ${args.serviceEndpoint}",
+    returnStdout: true
+  )
+
+  return httpResponse.equals("OK")
+}
