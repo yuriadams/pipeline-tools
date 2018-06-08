@@ -151,7 +151,7 @@ def deployK8S(Map args) {
 }
 
 def deployToS3AndCDN(Map args) {
-  sh "${args.aws} s3 sync ./build s3://${args.bucketName}"
+  sh "${args.aws} s3 sync ${args.buildPath} s3://${args.bucketName}"
   sh "${args.aws} configure set preview.cloudfront true"
   sh "${args.aws} cloudfront create-invalidation --distribution-id ${args.cloudfrontDistribution} --paths /index.html"
 }
