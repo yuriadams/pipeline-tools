@@ -90,22 +90,23 @@ def getMapValues(Map map=[:]) {
 
 @NonCPS
 def generateFile(Map config, String sourcePath, String destPath, String dockerImage="") {
+  def temp = "${sourcePath}.tmp"
+  sh("cp ${sourcePath} ${temp}")
+
   def binding = [
-     app_name       : config.app.name,
-     app_replicas   : config.app.replicas,
-     container_port : config.app.port,
-     docker_image   : dockerImage
+     $app_name       : config.app.name,
+     $app_replicas   : config.app.replicas,
+     $container_port : config.app.port,
+     $docker_image   : dockerImage
   ]
 
-  def engine = new groovy.text.SimpleTemplateEngine()
-
-  def template = readFile(sourcePath)
-  def deploymentFileText = engine.createTemplate(text).make(binding)
-
-  def deploymentFile = new File(destPath)
-  file.newWriter().withWriter { w ->
-    w << deploymentFileText.toString()
+  binding.each{ property, value ->
+    escapedProperty = property.replace('[', '\\[').replace(']', '\\]').replace('.', '\\.')
+    sh "sed -i 's|$escapedProperty|$value|g' $temp"
   }
+
+  sh("cp ${tmp} ${destPath}")
+  sh("rm ${tmp}")
 }
 
 def createNamespace(String kubectl, String namespaceName) {
