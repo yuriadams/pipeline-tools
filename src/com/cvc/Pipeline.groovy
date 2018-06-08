@@ -93,7 +93,14 @@ def generateFile(String sourceFile, String destFile, String from, String to) {
 }
 
 def createNamespace(kubectl, namespace) {
-  sh("${kubectl} create namespace ${namespace}")
+  def namespace = sh(
+      script: "${kubectl} get namespace ${deployName}",
+      returnStatus: true
+  )
+
+  if (namespace != 0) {
+    sh("${kubectl} create namespace ${namespace}")
+  }
 }
 
 def deploy(Map args) {
@@ -113,7 +120,6 @@ def deploy(Map args) {
   )
 
   if (deployment != 0) {
-    shouldWait = true
     sh("${kubectl} create -f ${args.deploymentFile}")
   } else {
     sh("${kubectl} set image deployment/${args.deployName} ${args.containerName}=${args.dockerImage}")
