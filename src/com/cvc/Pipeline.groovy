@@ -92,6 +92,7 @@ def getMapValues(Map map=[:]) {
 def generateFile(Map config, String sourcePath, String destPath, String dockerImage="") {
   def tempFile = "${sourcePath}.tmp"
   sh("cp $sourcePath $tempFile")
+  println "generated Temp File ${tempFile}"
 
   def binding = [
      $app_name       : config.app.name,
@@ -100,12 +101,17 @@ def generateFile(Map config, String sourcePath, String destPath, String dockerIm
      $docker_image   : dockerImage
   ]
 
+  println "Bindings ${binding}"
   binding.each{ property, value ->
     escapedProperty = property.replace('[', '\\[').replace(']', '\\]').replace('.', '\\.')
     sh "sed -i 's|$escapedProperty|$value|g' $tempFile"
   }
 
+  println "Generate Final File ${destPath}"
+
   sh("cp $tempFile $destPath")
+
+  println "Remove Temp File ${destPath}"
   sh("rm $tempFile")
 }
 
