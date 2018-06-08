@@ -90,8 +90,8 @@ def getMapValues(Map map=[:]) {
 
 @NonCPS
 def generateFile(Map config, String sourcePath, String destPath, String dockerImage="") {
-  def temp = "${sourcePath}.tmp"
-  sh("cp ${sourcePath} ${temp}")
+  def tempFile = "${sourcePath}.tmp"
+  sh("cp $sourcePath $tempFile")
 
   def binding = [
      $app_name       : config.app.name,
@@ -102,11 +102,11 @@ def generateFile(Map config, String sourcePath, String destPath, String dockerIm
 
   binding.each{ property, value ->
     escapedProperty = property.replace('[', '\\[').replace(']', '\\]').replace('.', '\\.')
-    sh "sed -i 's|$escapedProperty|$value|g' $temp"
+    sh "sed -i 's|$escapedProperty|$value|g' $tempFile"
   }
 
-  sh("cp ${tmp} ${destPath}")
-  sh("rm ${tmp}")
+  sh("cp $tempFile $destPath")
+  sh("rm $tempFile")
 }
 
 def createNamespace(String kubectl, String namespaceName) {
