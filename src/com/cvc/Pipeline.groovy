@@ -89,8 +89,7 @@ def getMapValues(Map map=[:]) {
 }
 
 @NonCPS
-def generateFile(Map config, String dockerImage) {
-  // sh("sed 's/${from}/${to}/' ${sourceFile} > ${destFile}")
+def generateFile(Map config, String sourcePath, String destPath, String dockerImage="") {
   def binding = [
      app_name       : config.app.name,
      app_replicas   : config.app.replicas,
@@ -100,15 +99,13 @@ def generateFile(Map config, String dockerImage) {
 
   def engine = new groovy.text.SimpleTemplateEngine()
 
-  def template = readFile(config.app.deploymentTplPath)
+  def template = readFile(sourcePath)
   def deploymentFileText = engine.createTemplate(text).make(binding)
 
-  def deploymentFile = new File(config.app.deploymentPath)
+  def deploymentFile = new File(destPath)
   file.newWriter().withWriter { w ->
     w << deploymentFileText.toString()
   }
-
-  println readFile(config.app.deploymentPath)
 }
 
 def createNamespace(String kubectl, String namespaceName) {
@@ -143,4 +140,6 @@ def deploy(Map args) {
   } else {
     sh("${kubectl} set image deployment/${args.deployName} ${args.containerName}=${args.dockerImage}")
   }
+
+  sh "${kubectl} apply -f ${args.serviceFile}"
 }
