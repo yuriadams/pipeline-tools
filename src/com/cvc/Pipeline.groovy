@@ -1,7 +1,7 @@
 #!/usr/bin/groovy
 package com.cvc;
 
-def consul(config, keyName) {
+def consul(Map config, String keyName) {
   def consulURL = config.consul[env.JOB_BASE_NAME]['url']
   def consulPrefix = config.consul.prefix
   def ssh = config.app[env.JOB_BASE_NAME]['sshJenkinsLab']
@@ -42,7 +42,7 @@ def notifyBuild(String message, String channel, String baseUrl, String tokenCred
               message: "${summary} ${message}")
 }
 
-def getContainerTags(git, Map tags = [:]) {
+def getContainerTags(Map git, Map tags = [:]) {
     println "getting list of tags for container"
     def String commit_tag
     def String version_tag
@@ -88,11 +88,30 @@ def getMapValues(Map map=[:]) {
     return map_values
 }
 
-def generateFile(String sourceFile, String destFile, String from, String to) {
-  sh("sed 's/${from}/${to}/' ${sourceFile} > ${destFile}")
+@NonCPS
+def generateFile(Map config, String dockerImage) {
+  // sh("sed 's/${from}/${to}/' ${sourceFile} > ${destFile}")
+  def binding = [
+     app_name       : config.app.name,
+     app_replicas   : config.app.replicas,
+     container_port : config.app.port,
+     docker_image   : dockerImage
+  ]
+
+  def engine = new groovy.text.SimpleTemplateEngine()
+
+  def template = readFile(config.app.deploymentTplPath)
+  def deploymentFileText = engine.createTemplate(text).make(binding)
+
+  def deploymentFile = new File(config.app.deploymentPath)
+  file.newWriter().withWriter { w ->
+    w << deploymentFileText.toString()
+  }
+
+  println readFile(config.app.deploymentPath)
 }
 
-def createNamespace(kubectl, namespaceName) {
+def createNamespace(String kubectl, String namespaceName) {
   def namespace = sh(
       script: "${kubectl} get namespace ${namespaceName}",
       returnStatus: true
