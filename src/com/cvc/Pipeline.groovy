@@ -88,7 +88,6 @@ def getMapValues(Map map=[:]) {
     return map_values
 }
 
-@NonCPS
 def generateFile(Map config, String sourcePath, String destPath, String dockerImage="") {
   def tempFile = "${sourcePath}.tmp"
   sh("cp $sourcePath $tempFile")
