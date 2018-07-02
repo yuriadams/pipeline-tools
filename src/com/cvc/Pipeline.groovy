@@ -1,6 +1,8 @@
 #!/usr/bin/groovy
 package com.cvc;
 
+import groovy.json.JsonSlurper
+
 def consul(Map config, String keyName) {
   def consulURL = config.consul[env.JOB_BASE_NAME]['url']
   def consulPrefix = config.consul.prefix
@@ -167,7 +169,7 @@ def cleanDeploy() {
   }
 }
 
-def requestToHealthCheck(Map args){
+def requestToHealthCheck(Map args) {
   def httpResponse = sh(
     script: "${args.ssh} curl -s ${args.serviceEndpoint}",
     returnStdout: true
@@ -176,17 +178,8 @@ def requestToHealthCheck(Map args){
   return httpResponse.equals("OK")
 }
 
-def performanceTests(Map args){
-  def lighthouseLegacyContainerId = sh(
-      script: "docker ps -aqf \"name=${args.containerName}\"",
-      returnStdout: true
-  )
-
-  if (lighthouseLegacyContainerId != "") {
-    sh("docker rm ${lighthouseLegacyContainerId.trim()}")
-  }
-
-  sh("docker run --name ${args.containerName} lighthouse lighthouse ${args.urlSSR} --output=${args.format} --output-path=/home/lighthouse/reports/lighthouse-report.${args.format}")
+def performanceTests(Map args) {
+  sh("docker run --rm --name ${args.containerName} lighthouse lighthouse ${args.urlSSR} --output=${args.format} --output-path=/home/lighthouse/reports/lighthouse-report.${args.format}")
 
   def containerId = sh(
       script: "docker ps -aqf \"name=${args.containerName}\"",
@@ -194,4 +187,26 @@ def performanceTests(Map args){
   )
 
   return containerId
+}
+
+def checkPerformanceReports(Map args) {
+  String reportContent = readFile(args.currentReportPath) //new File('./report.json').getText('UTF-8')
+  String legacyReportContent = readFile(args.legacyReportPath)//new File('./legacy/report.json').getText('UTF-8')
+
+  def jsonSlurper = new JsonSlurper()
+  def object = jsonSlurper.parseText(reportContent)
+  def legacyObject = jsonSlurper.parseText(legacyReportContent)
+  def errors = []
+
+  object.reportCategories[0].audits.each { metric ->
+    legacyObject.reportCategories[0].audits.each { legacy ->
+      if(metric.id == legacy.id) {
+        if(metric.result.rawValue > legacy.result.rawValue){
+          errors.push("Metric: ${metric.id} -> Current = ${metric.result.rawValue} | Previous = ${legacy.result.rawValue}")
+        }
+      }
+    }
+  }
+
+  return errors
 }
