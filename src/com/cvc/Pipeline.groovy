@@ -207,13 +207,21 @@ def checkPerformanceReports(Map args) {
   def legacyObject = jsonSlurper.parseText(legacyReportContent)
   def errors = []
 
-  object.reportCategories[0].audits.each { metric ->
-    legacyObject.reportCategories[0].audits.each { legacy ->
-      if(metric.id == legacy.id) {
-        if(metric.result.rawValue.isNumber() && metric.result.rawValue > legacy.result.rawValue){
-          errors.push("Metric: ${metric.id} -> Current = ${metric.result.rawValue} | Previous = ${legacy.result.rawValue}")
-        }
-      }
+  def whitelist = [
+    'first-contentful-paint',
+    'speed-index',
+    'first-meaningful-paint',
+    'first-cpu-idle',
+    'interactive',
+    'estimated-input-latency'
+  ]
+
+  whitelist.each{ metricID ->
+    def metric = object.audits[metricID]
+    def legacy = legacyObject.audits[metricID]
+
+    if(metric.rawValue && (metric.rawValue > legacy.rawValue)) {
+      errors.push("Metric: ${metric.id} -> Current = ${metric.rawValue} | Previous = ${legacy.rawValue}")
     }
   }
 
