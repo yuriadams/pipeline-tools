@@ -180,7 +180,7 @@ def requestToHealthCheck(Map args) {
 
 def performanceTests(Map args) {
   def lighthouseLegacyContainerId = sh(
-    script: "docker ps -aqf \"name=${containerName}\"",
+    script: "docker ps -aqf \"name=${args.containerName}\"",
     returnStdout: true
   )
 
