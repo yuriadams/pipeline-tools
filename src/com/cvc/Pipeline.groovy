@@ -175,3 +175,23 @@ def requestToHealthCheck(Map args){
 
   return httpResponse.equals("OK")
 }
+
+def performanceTests(Map args){
+  def lighthouseLegacyContainerId = sh(
+      script: "docker ps -aqf \"name=${args.containerName}\"",
+      returnStdout: true
+  )
+
+  if (lighthouseLegacyContainerId != "") {
+    sh("docker rm ${lighthouseLegacyContainerId.trim()}")
+  }
+
+  sh("docker run --name ${args.containerName} lighthouse lighthouse ${args.urlSSR} --output=${args.format} --output-path=/home/lighthouse/reports/lighthouse-report.${args.format}")
+
+  def containerId = sh(
+      script: "docker ps -aqf \"name=${args.containerName}\"",
+      returnStdout: true
+  )
+
+  return containerId
+}
