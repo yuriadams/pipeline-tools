@@ -201,7 +201,7 @@ def checkPerformanceReports(Map args) {
   object.reportCategories[0].audits.each { metric ->
     legacyObject.reportCategories[0].audits.each { legacy ->
       if(metric.id == legacy.id) {
-        if(metric.result.rawValue > legacy.result.rawValue){
+        if(metric.result.rawValue.isNumber() && metric.result.rawValue > legacy.result.rawValue){
           errors.push("Metric: ${metric.id} -> Current = ${metric.result.rawValue} | Previous = ${legacy.result.rawValue}")
         }
       }
