@@ -207,11 +207,12 @@ def checkPerformanceReports(Map args) {
   def legacyObject = jsonSlurper.parseText(legacyReportContent)
   def errors = []
 
+  // 'pwa',
+  // 'accessibility',
+  // 'best-practices',
+  
   def whitelist = [
     'performance',
-    'pwa',
-    'accessibility',
-    'best-practices',
     'seo'
   ]
 
