@@ -219,7 +219,7 @@ def checkPerformanceReports(Map args) {
     def metric = object.categories[metricID]
     def legacy = legacyObject.categories[metricID]
 
-    if(metric.score > legacy.score) {
+    if(metric.score < legacy.score) {
       errors.push("Metric: ${metric.id} -> Current = ${metric.score} | Previous = ${legacy.score}")
     }
   }
