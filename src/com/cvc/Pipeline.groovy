@@ -199,8 +199,8 @@ def performanceTests(Map args) {
 }
 
 def checkPerformanceReports(Map args) {
-  String reportContent = readFile(args.currentReportPath) //new File('./report.json').getText('UTF-8')
-  String legacyReportContent = readFile(args.legacyReportPath)//new File('./legacy/report.json').getText('UTF-8')
+  String reportContent = readFile(args.currentReportPath)
+  String legacyReportContent = readFile(args.legacyReportPath)
 
   def jsonSlurper = new JsonSlurper()
   def object = jsonSlurper.parseText(reportContent)
@@ -208,20 +208,19 @@ def checkPerformanceReports(Map args) {
   def errors = []
 
   def whitelist = [
-    'first-contentful-paint',
-    'speed-index',
-    'first-meaningful-paint',
-    'first-cpu-idle',
-    'interactive',
-    'estimated-input-latency'
+    'performance',
+    'pwa',
+    'accessibility',
+    'best-practices',
+    'seo'
   ]
 
   whitelist.each{ metricID ->
-    def metric = object.audits[metricID]
-    def legacy = legacyObject.audits[metricID]
+    def metric = object.categories[metricID]
+    def legacy = legacyObject.categories[metricID]
 
-    if(metric.rawValue && (metric.rawValue > legacy.rawValue)) {
-      errors.push("Metric: ${metric.id} -> Current = ${metric.rawValue} | Previous = ${legacy.rawValue}")
+    if(metric.score && (metric.score > legacy.score)) {
+      errors.push("Metric: ${metric.id} -> Current = ${metric.score} | Previous = ${legacy.score}")
     }
   }
 
