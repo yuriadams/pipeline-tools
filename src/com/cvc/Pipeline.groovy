@@ -96,10 +96,12 @@ def generateFile(Map config, String sourcePath, String destPath, String dockerIm
   println "generated Temp File ${tempFile}"
 
   def binding = [
-     $app_name       : config.app.name,
-     $app_replicas   : config.app[env.JOB_BASE_NAME].replicas,
-     $container_port : config.app.port,
-     $docker_image   : dockerImage
+     $app_name            : config.app.name,
+     $app_replicas        : config.app[env.JOB_BASE_NAME].replicas,
+     $app_max_surge       : config.app[env.JOB_BASE_NAME].maxSurge,
+     $app_max_unavailable : config.app[env.JOB_BASE_NAME].maxUnavailable,
+     $container_port      : config.app.port,
+     $docker_image        : dockerImage
   ]
 
   println "Bindings ${binding}"
@@ -210,7 +212,7 @@ def checkPerformanceReports(Map args) {
   // 'pwa',
   // 'accessibility',
   // 'best-practices',
-  
+
   def whitelist = [
     'performance',
     'seo'
